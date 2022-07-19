@@ -2,24 +2,32 @@ require 'json'
 
 module AthenaHealth
   class Connection
-    BASE_URL    = 'https://api.athenahealth.com'.freeze
-    AUTH_PATH   = { 'v1' => 'oauth', 'preview1' => 'oauthpreview', 'openpreview1' => 'oauthopenpreview' }
+    BASE_URL    = {'v1' => 'https://api.athenahealth.com', 'sandbox' => 'https://api.preview.platform.athenahealth.com'}
+    AUTH_PATH   = { 'v1' => 'oauth', 'preview1' => 'oauthpreview', 'openpreview1' => 'oauthopenpreview', 'sandbox' => 'oauth2/v1' }
+    VERSION   = { 'v1' => 'v1', 'sandbox' => 'v1' }
 
-    def initialize(version:, key:, secret:, token: nil, base_url: BASE_URL)
+    def initialize(version:, key:, secret:, token: nil, base_url: nil)
       @version = version
       @key = key
       @secret = secret
       @token = token
-      @base_url = base_url
+      @base_url = "#{BASE_URL[@version]}"
     end
 
     def authenticate
-      response = Typhoeus.post(
-        "#{@base_url}/#{AUTH_PATH[@version]}/token",
-        userpwd: "#{@key}:#{@secret}",
-        body: { grant_type: 'client_credentials' }
-      ).response_body
-
+      if @version == 'sandbox'
+		  response = Typhoeus.post(
+		    "#{@base_url}/#{AUTH_PATH[@version]}/token",
+		    userpwd: "#{@key}:#{@secret}",
+		    body: { grant_type: 'client_credentials', scope: 'athena/service/Athenanet.MDP.*' }
+		  ).response_body
+	  else
+		response = Typhoeus.post(
+		    "#{@base_url}/#{AUTH_PATH[@version]}/token",
+		    userpwd: "#{@key}:#{@secret}",
+		    body: { grant_type: 'client_credentials' }
+		  ).response_body
+	  end
       @token = JSON.parse(response)['access_token']
     end
 
@@ -27,7 +35,7 @@ module AthenaHealth
       authenticate if @token.nil?
 
       response = Typhoeus::Request.new(
-        "#{@base_url}/#{@version}/#{endpoint}",
+        "#{@base_url}/#{VERSION[@version]}/#{endpoint}",
         method: method,
         headers: { "Authorization" => "Bearer #{@token}"},
         params: params,
