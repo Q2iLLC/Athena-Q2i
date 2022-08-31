@@ -15,7 +15,7 @@ module AthenaHealth
     end
 
     def authenticate
-      if @version == 'sandbox'
+      if @version == 'sandbox' || @version == 'v1'
 		  response = Typhoeus.post(
 		    "#{@base_url}/#{AUTH_PATH[@version]}/token",
 		    userpwd: "#{@key}:#{@secret}",
