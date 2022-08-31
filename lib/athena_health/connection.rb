@@ -2,8 +2,8 @@ require 'json'
 
 module AthenaHealth
   class Connection
-    BASE_URL    = {'v1' => 'https://api.athenahealth.com', 'sandbox' => 'https://api.preview.platform.athenahealth.com'}
-    AUTH_PATH   = { 'v1' => 'oauth', 'preview1' => 'oauthpreview', 'openpreview1' => 'oauthopenpreview', 'sandbox' => 'oauth2/v1' }
+    BASE_URL    = {'v1' => 'https://api.platform.athenahealth.com', 'sandbox' => 'https://api.preview.platform.athenahealth.com'}
+    AUTH_PATH   = { 'v1' => 'oauth2/v1', 'preview1' => 'oauthpreview', 'openpreview1' => 'oauthopenpreview', 'sandbox' => 'oauth2/v1' }
     VERSION   = { 'v1' => 'v1', 'sandbox' => 'v1' }
 
     def initialize(version:, key:, secret:, token: nil, base_url: nil)
