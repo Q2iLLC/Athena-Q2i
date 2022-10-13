@@ -58,6 +58,8 @@ module AthenaHealth
       end
 
       if response.response_code != 200
+        puts "response.response_code:" + response.response_code.to_s
+        puts "response.response_body:" + response.response_body
         AthenaHealth::Error.new(code: response.response_code).render
       end
 
