@@ -10,7 +10,9 @@ module AthenaHealth
       @version = version
       @key = key
       @secret = secret
-      @token = token
+      if (!token.nil?)
+        @token = token
+      end
       @base_url = "#{BASE_URL[@version]}"
     end
 
