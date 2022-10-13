@@ -33,23 +33,30 @@ module AthenaHealth
 		  ).response_body
 	  end
       @token = JSON.parse(response)['access_token']
+      puts "token obtained:" + @token.to_s
+      return @token;
     end
 
     def call(endpoint:, method:, params: {}, body: {}, second_call: false)
-      puts "call @token:" + @token
-      authenticate if (@token.nil? || @token == "")
+      puts "call @token:" + @token.to_s
+      if (@token.nil? || @token == "")
+        temp_token = authenticate
+      elsif
+        temp_token = @token
+      end
+
 
       response = Typhoeus::Request.new(
         "#{@base_url}/#{VERSION[@version]}/#{endpoint}",
         method: method,
-        headers: { "Authorization" => "Bearer #{@token}"},
+        headers: { "Authorization" => "Bearer #{temp_token}"},
         params: params,
         body: body
       ).run
 
       if response.response_code == 401 && !second_call
         #Adding logic to call authenticate again
-        puts "401 @token:" + @token
+        puts "401 temp_token:" + temp_token.to_s
         @token = nil
         puts "401 response.response_code:" + response.response_code.to_s
         puts "401 response.response_body:" + response.response_body
@@ -67,7 +74,7 @@ module AthenaHealth
       end
 
       if response.response_code != 200
-        puts "@token:" + @token.to_s
+        puts "temp_token:" + temp_token.to_s
         puts "response.response_code:" + response.response_code.to_s
         puts "response.response_body:" + response.response_body
         AthenaHealth::Error.new(code: response.response_code).render
