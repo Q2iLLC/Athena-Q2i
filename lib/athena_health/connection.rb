@@ -43,11 +43,16 @@ module AthenaHealth
       ).run
 
       if response.response_code == 401 && !second_call
-        authenticate
+        #Adding logic to call authenticate again
+        @token = nil
+        puts "401 response.response_code:" + response.response_code.to_s
+        puts "401 esponse.response_body:" + response.response_body
         return call(endpoint: endpoint, method: method, second_call: true, body: body, params: params)
       end
 
       if response.response_code == 403 && !second_call
+        puts "403 response.response_code:" + response.response_code.to_s
+        puts "403 esponse.response_body:" + response.response_body
         return call(endpoint: endpoint, method: method, second_call: true, body: body, params: params)
       end
 
