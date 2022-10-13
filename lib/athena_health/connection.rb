@@ -36,8 +36,8 @@ module AthenaHealth
     end
 
     def call(endpoint:, method:, params: {}, body: {}, second_call: false)
-      puts "call @token:" + @token.to_s
-      authenticate if @token.nil?
+      puts "call @token:" + @token
+      authenticate if (@token.nil? || @token == "")
 
       response = Typhoeus::Request.new(
         "#{@base_url}/#{VERSION[@version]}/#{endpoint}",
@@ -49,7 +49,7 @@ module AthenaHealth
 
       if response.response_code == 401 && !second_call
         #Adding logic to call authenticate again
-        puts "401 @token:" + @token.to_s
+        puts "401 @token:" + @token
         @token = nil
         puts "401 response.response_code:" + response.response_code.to_s
         puts "401 response.response_body:" + response.response_body
