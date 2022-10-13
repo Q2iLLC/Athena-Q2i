@@ -34,6 +34,7 @@ module AthenaHealth
     end
 
     def call(endpoint:, method:, params: {}, body: {}, second_call: false)
+      puts "call @token:" + @token.to_s
       authenticate if @token.nil?
 
       response = Typhoeus::Request.new(
