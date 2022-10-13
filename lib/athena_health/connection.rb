@@ -37,13 +37,11 @@ module AthenaHealth
 		  ).response_body
 	  end
       @@token = JSON.parse(response)['access_token']
-      puts "token obtained:" + @@token.to_s
     end
 
     def call(endpoint:, method:, params: {}, body: {}, second_call: false)
-      puts "call @@token:" + @@token.to_s
-      authenticate if @@token.nil?
 
+      authenticate if @@token.nil?
 
       response = Typhoeus::Request.new(
         "#{@base_url}/#{VERSION[@version]}/#{endpoint}",
@@ -55,8 +53,6 @@ module AthenaHealth
 
       if response.response_code == 401 && !second_call
         authenticate
-        puts "401 response.response_code:" + response.response_code.to_s
-        puts "401 response.response_body:" + response.response_body
         return call(endpoint: endpoint, method: method, second_call: true, body: body, params: params)
       end
 
@@ -71,9 +67,6 @@ module AthenaHealth
       end
 
       if response.response_code != 200
-        puts "@@token:" + @@token.to_s
-        puts "response.response_code:" + response.response_code.to_s
-        puts "response.response_body:" + response.response_body
         AthenaHealth::Error.new(code: response.response_code).render
       end
 
