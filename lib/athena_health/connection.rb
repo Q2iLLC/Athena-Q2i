@@ -2,6 +2,10 @@ require 'json'
 
 module AthenaHealth
   class Connection
+
+    # Initialize our class variables
+    @@token = nil
+
     BASE_URL    = {'v1' => 'https://api.platform.athenahealth.com', 'sandbox' => 'https://api.preview.platform.athenahealth.com'}
     AUTH_PATH   = { 'v1' => 'oauth2/v1', 'preview1' => 'oauthpreview', 'openpreview1' => 'oauthopenpreview', 'sandbox' => 'oauth2/v1' }
     VERSION   = { 'v1' => 'v1', 'sandbox' => 'v1' }
@@ -11,7 +15,7 @@ module AthenaHealth
       @key = key
       @secret = secret
       if (!token.nil?)
-        @token = token
+        @@token = token
       end
       @base_url = "#{BASE_URL[@version]}"
     end
@@ -32,32 +36,25 @@ module AthenaHealth
 		    body: { grant_type: 'client_credentials' }
 		  ).response_body
 	  end
-      @token = JSON.parse(response)['access_token']
-      puts "token obtained:" + @token.to_s
-      return @token;
+      @@token = JSON.parse(response)['access_token']
+      puts "token obtained:" + @@token.to_s
     end
 
     def call(endpoint:, method:, params: {}, body: {}, second_call: false)
-      puts "call @token:" + @token.to_s
-      if (@token.nil? || @token == "")
-        temp_token = authenticate
-      elsif
-        temp_token = @token
-      end
+      puts "call @@token:" + @@token.to_s
+      authenticate if @@token.nil?
 
 
       response = Typhoeus::Request.new(
         "#{@base_url}/#{VERSION[@version]}/#{endpoint}",
         method: method,
-        headers: { "Authorization" => "Bearer #{temp_token}"},
+        headers: { "Authorization" => "Bearer #{@@token}"},
         params: params,
         body: body
       ).run
 
       if response.response_code == 401 && !second_call
-        #Adding logic to call authenticate again
-        puts "401 temp_token:" + temp_token.to_s
-        @token = nil
+        authenticate
         puts "401 response.response_code:" + response.response_code.to_s
         puts "401 response.response_body:" + response.response_body
         return call(endpoint: endpoint, method: method, second_call: true, body: body, params: params)
@@ -74,7 +71,7 @@ module AthenaHealth
       end
 
       if response.response_code != 200
-        puts "temp_token:" + temp_token.to_s
+        puts "@@token:" + @@token.to_s
         puts "response.response_code:" + response.response_code.to_s
         puts "response.response_body:" + response.response_body
         AthenaHealth::Error.new(code: response.response_code).render
