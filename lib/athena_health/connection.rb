@@ -16,12 +16,14 @@ module AthenaHealth
 
     def authenticate
       if @version == 'sandbox' || @version == 'v1'
+		  puts "token for sandbox or v1"
 		  response = Typhoeus.post(
 		    "#{@base_url}/#{AUTH_PATH[@version]}/token",
 		    userpwd: "#{@key}:#{@secret}",
 		    body: { grant_type: 'client_credentials', scope: 'athena/service/Athenanet.MDP.*' }
 		  ).response_body
 	  else
+		puts "token for others"
 		response = Typhoeus.post(
 		    "#{@base_url}/#{AUTH_PATH[@version]}/token",
 		    userpwd: "#{@key}:#{@secret}",
@@ -44,15 +46,14 @@ module AthenaHealth
 
       if response.response_code == 401 && !second_call
         #Adding logic to call authenticate again
+        puts "401 @token:" + @token.to_s
         @token = nil
         puts "401 response.response_code:" + response.response_code.to_s
-        puts "401 esponse.response_body:" + response.response_body
+        puts "401 response.response_body:" + response.response_body
         return call(endpoint: endpoint, method: method, second_call: true, body: body, params: params)
       end
 
       if response.response_code == 403 && !second_call
-        puts "403 response.response_code:" + response.response_code.to_s
-        puts "403 esponse.response_body:" + response.response_body
         return call(endpoint: endpoint, method: method, second_call: true, body: body, params: params)
       end
 
@@ -63,6 +64,7 @@ module AthenaHealth
       end
 
       if response.response_code != 200
+        puts "@token:" + @token.to_s
         puts "response.response_code:" + response.response_code.to_s
         puts "response.response_body:" + response.response_body
         AthenaHealth::Error.new(code: response.response_code).render
